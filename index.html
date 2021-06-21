@@ -13,8 +13,43 @@
 </head>
 <body>
     
-    <header>21BlackJack</header>
+    <header class="titulo">21BlackJack</header>
 
+    <div class="row mt-2">
+        <div class="col text-center">
+
+            <button class="btn btn-danger">Nuevo Juego</button>
+            <button class="btn btn-primary">Pedir Carta</button>
+            <button class="btn btn-primary">Detener</button>
+
+
+        </div>
+    </div>
+
+    <div class="row container">
+        <div class="col">
+
+            <h1>Jugador 1 - <small>0</small></h1>
+            <div id="jugador-cartas">
+                <img class="carta" src="assets/cartas/AS.png">
+            </div>
+
+        </div>
+    </div>
+
+    <div class="row container row mt-2">
+        <div class="col">
+
+            <h1>Maggie - <small>0</small></h1>
+            <div id="maggie-cartas">
+                <img class="carta" src="assets/cartas/AH.png">
+            </div>
+
+        </div>
+    </div>
+
+
+    <script src="assets/js/underscore-min.js"></script>
     <script src="assets/js/juego.js"></script>
 </body>
 </html>
