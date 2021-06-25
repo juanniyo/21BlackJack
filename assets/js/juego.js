@@ -5,25 +5,39 @@
  * S = Spades (Picas)
  */
 
-(() => {
+const miModulo = (() => {
     'use strict'
 
-    let deck         = [];
-    const tipos      = ['C','D','H','S'];
-    const especiales = ['A','j','Q','K'];
+    let deck           = [];
+    const   tipos      = ['C','D','H','S'],
+            especiales = ['A','j','Q','K'];
 
-    let puntosJugador = 0,
-        puntosComputadora = 0;
+    let puntosJugadores = [];
 
     // Referencias HTML
-    const btnPedir             = document.querySelector('#btnPedir');
-    const btnDetener           = document.querySelector('#btnDetener');
-    const btnNuevo             = document.querySelector('#btnNuevo');
+    const   btnPedir    = document.querySelector('#btnPedir'),
+            btnDetener  = document.querySelector('#btnDetener'),
+            btnNuevo    = document.querySelector('#btnNuevo');
 
-    const divCartasComputadora = document.querySelector('#maggie-cartas');
-    const divCartasJugador     = document.querySelector('#jugador-cartas');
-    const sumatorio            = document.querySelectorAll('small');
+    const   divCartasJugadores = document.querySelectorAll('.divCartas'),
+            sumatorio = document.querySelectorAll('small');
 
+    // Esta función inicia el juego
+    const inicializarJuego = ( numJugadores = 2) => {
+        deck = crearDeck();
+
+        puntosJugadores = [];
+        for( let i = 0; i < numJugadores; i++){
+            puntosJugadores.push(0);
+        }
+
+        sumatorio.forEach( elem => elem.innerText = 0 );
+        divCartasJugadores.forEach( elem => elem.innerHTML = '' );
+        btnPedir.disabled = false;
+        btnDetener.disabled = false;
+
+
+    }
 
     //************************************************ */
     //
@@ -31,7 +45,9 @@
     //
     //************************************************ */
     const crearDeck = () => {
-    // Cartas del 2 al 10
+        deck = [];
+
+        // Cartas del 2 al 10
         for( let i = 2; i <= 10; i++ ){
             for( let tipo of tipos ) {
                 deck.push( i + tipo );
@@ -45,12 +61,8 @@
             }
         }
 
-        deck = _.shuffle( deck ); // función de la libreria underscore.js (_shuffle)
-
-        return deck;
+        return _.shuffle( deck ); // función de la libreria underscore.js (_shuffle)
     }
-
-    crearDeck();
 
     //************************************************ */
     //
@@ -62,8 +74,7 @@
         if( deck.length === 0 ) {
             throw 'No hay cartas en la baraja';
         }
-        const carta = deck.pop(); // Cogemos la ultima carta de la baraja, la eliminamos y la devolvemos
-        return carta;
+        return deck.pop(); // Cogemos la ultima carta de la baraja, la eliminamos y la devolvemos;
     }
 
 
@@ -93,27 +104,23 @@
 
     }
 
-    // Turno de la Computadora 'Maggie'
-    const turnoComputadora = ( puntosMinimos ) => {
-        do {
-            const carta = pedirCarta();
+    // Turno: 0 = primer jugador y el último será la computadora
+    const acumularPuntos = (carta, turno) => {
+        puntosJugadores[turno] = puntosJugadores[turno] + valorCarta( carta );        
+        sumatorio[turno].innerText = puntosJugadores[turno];
+        return puntosJugadores[turno];
+    }
 
-            puntosComputadora = puntosComputadora + valorCarta( carta );
+    const crearCarta = (carta, turno) => {
+        const imgCarta = document.createElement('img');
+        imgCarta.src = `assets/cartas/${ carta }.png`;
+        imgCarta.classList.add('carta');
+        divCartasJugadores[turno].append(imgCarta);
+    }
+
+    const determinarGanador = () => {
+        const [ puntosMinimos, puntosComputadora ] = puntosJugadores;
         
-            sumatorio[1].innerText = puntosComputadora ;
-        
-            //<img class="carta" src="assets/cartas/AS.png">
-            const imgCarta = document.createElement('img');
-            imgCarta.src = `assets/cartas/${ carta }.png`;
-            imgCarta.classList.add('carta');
-            divCartasComputadora.append( imgCarta );
-
-            if( puntosMinimos > 21 ) {
-                break;
-            }
-
-        } while ( (puntosComputadora < puntosMinimos) && ( puntosMinimos <= 21 ) );
-
         setTimeout(() => {
             if( puntosComputadora === puntosMinimos ) 
             {
@@ -130,7 +137,20 @@
 
         }, 42);
 
+    }
 
+    // Turno de la Computadora 'Maggie'
+    const turnoComputadora = ( puntosMinimos ) => {
+        let puntosComputadora = 0;
+
+        do {
+            const carta = pedirCarta();
+            puntosComputadora = acumularPuntos(carta, puntosJugadores.length - 1 );
+            crearCarta(carta, puntosJugadores.length - 1);
+
+        } while ( (puntosComputadora < puntosMinimos) && ( puntosMinimos <= 21 ) );
+
+        determinarGanador();
     }
 
 
@@ -139,16 +159,9 @@
     btnPedir.addEventListener('click', () => {
 
         const carta = pedirCarta();
+        const puntosJugador = acumularPuntos( carta, 0);
 
-        puntosJugador = puntosJugador + valorCarta( carta );
-
-        sumatorio[0].innerText = puntosJugador ;
-
-        //<img class="carta" src="assets/cartas/AS.png">
-        const imgCarta = document.createElement('img');
-        imgCarta.src = `assets/cartas/${ carta }.png`;
-        imgCarta.classList.add('carta');
-        divCartasJugador.append( imgCarta );
+        crearCarta( carta, 0 );
 
         if( puntosJugador > 21 ) {
             console.warn( 'Ya perdió !' );
@@ -169,29 +182,11 @@
         btnPedir.disabled   = true;
         btnDetener.disabled = true;
 
-        turnoComputadora( puntosJugador );
+        turnoComputadora( puntosJugadores[0] );
     });
 
-
-    btnNuevo.addEventListener('click', () => {
-
-        console.clear();
-        deck = [];
-        deck = crearDeck();
-
-        puntosJugador     = 0;
-        puntosComputadora = 0;
-
-        sumatorio[0].innerText    = 0;
-        sumatorio[1].innerText    = 0;
-
-        divCartasComputadora.innerHTML = '';
-        divCartasJugador.innerHTML     = '';
-
-        btnPedir.disabled = false;
-        btnDetener.disabled = false;
-
-
-    });
+    return {
+        nuevoJuego: inicializarJuego
+    };
 
 })();
